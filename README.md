@@ -10,7 +10,7 @@ Contents
 --------
 **&nbsp;&nbsp;&nbsp;** **1. Collections:** **&nbsp;** **[`List`](#list)**__,__ **[`Dict`](#dictionary)**__,__ **[`Set`](#set)**__,__ **[`Range`](#range)**__,__ **[`Enumerate`](#enumerate)**__,__ **[`Namedtuple`](#named-tuple)**__,__ **[`Iterator`](#iterator)**__,__ **[`Generator`](#generator)**__.__  
 **&nbsp;&nbsp;&nbsp;** **2. Types:** **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**  **[`Type`](#type)**__,__ **[`String`](#string)**__,__ **[`Regex`](#regex)**__,__ **[`Format`](#format)**__,__ **[`Numbers`](#numbers)**__,__ **[`Combinatorics`](#combinatorics)**__,__ **[`Datetime`](#datetime)**__.__  
-**&nbsp;&nbsp;&nbsp;** **3. Syntax:** **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**  **[`Arguments`](#arguments)**__,__ **[`Splat`](#splat-operator)**__,__ **[`Inline`](#inline)**__,__ **[`Closure`](#closure)**__,__ **[`Decorator`](#decorator)**__,__ **[`Class`](#class)**__,__ **[`Enum`](#enum)**__,__ **[`Exceptions`](#exceptions)**__.__  
+**&nbsp;&nbsp;&nbsp;** **3. Syntax:** **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**  **[`Args`](#arguments)**__,__ **[`Inline`](#inline)**__,__ **[`Closure`](#closure)**__,__ **[`Decorator`](#decorator)**__,__ **[`Class`](#class)**__,__ **[`Duck_Types`](#duck-types)**__,__ **[`Enum`](#enum)**__,__ **[`Exceptions`](#exceptions)**__.__  
 **&nbsp;&nbsp;&nbsp;** **4. System:** **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**  **[`Print`](#print)**__,__ **[`Input`](#input)**__,__ **[`Command_Line_Arguments`](#command-line-arguments)**__,__ **[`Open`](#open)**__,__ **[`Path`](#path)**__,__ **[`Command_Execution`](#command-execution)**__.__  
 **&nbsp;&nbsp;&nbsp;** **5. Data:** **&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**  **[`CSV`](#csv)**__,__ **[`JSON`](#json)**__,__ **[`Pickle`](#pickle)**__,__ **[`SQLite`](#sqlite)**__,__ **[`Bytes`](#bytes)**__,__ **[`Struct`](#struct)**__,__ **[`Array`](#array)**__,__ **[`MemoryView`](#memory-view)**__,__ **[`Deque`](#deque)**__.__  
 **&nbsp;&nbsp;&nbsp;** **6. Advanced:** **&nbsp;&nbsp;&nbsp;**  **[`Threading`](#threading)**__,__ **[`Introspection`](#introspection)**__,__ **[`Metaprograming`](#metaprograming)**__,__ **[`Operator`](#operator)**__,__ **[`Eval`](#eval)**__,__ **[`Coroutine`](#coroutine)**__.__  
@@ -55,11 +55,11 @@ list_of_chars    = list(<str>)
 ```
 
 ```python
-index = <list>.index(<el>)     # Returns first index of item.
+index = <list>.index(<el>)     # Returns first index of item or raises ValueError.
 <list>.insert(index, <el>)     # Inserts item at index and moves the rest to the right.
 <el> = <list>.pop([index])     # Removes and returns item at index or from the end.
 <list>.remove(<el>)            # Removes first occurrence of item or raises ValueError.
-<list>.clear()                 # Removes all items.
+<list>.clear()                 # Removes all items. Also works on dict and set.
 ```
 
 
@@ -79,7 +79,7 @@ value  = <dict>.setdefault(key, default=None)   # Same, but also adds default to
 ```
 
 ```python
-<dict>.update(<dict>)                           # Or: dict_a = {**dict_a, **dict_b}.
+<dict>.update(<dict>)
 <dict> = dict(<collection>)                     # Creates a dict from coll. of key-value pairs.
 <dict> = dict(zip(keys, values))                # Creates a dict from two collections.
 <dict> = dict.fromkeys(keys [, value])          # Creates a dict from collection of keys.
@@ -195,7 +195,7 @@ from itertools import count, repeat, cycle, chain, islice
 ```
 
 ```python
-<iter> = chain(<coll.>, <coll.>, ...)       # Empties collections in order.
+<iter> = chain(<coll.>, <coll.> [, ...])    # Empties collections in order.
 <iter> = chain.from_iterable(<collection>)  # Empties collections inside a collection in order.
 ```
 
@@ -269,8 +269,9 @@ String
 ```
 
 ```python
-<list> = <str>.split()                       # Splits on any whitespace character.
+<list> = <str>.split()                       # Splits on one or more whitespace characters.
 <list> = <str>.split(sep=None, maxsplit=-1)  # Splits on 'sep' str at most 'maxsplit' times.
+<list> = <str>.splitlines(keepends=False)    # Splits on line breaks. Keeps them if 'keepends'.
 <str>  = <str>.join(<collection>)            # Joins elements using string as separator.
 ```
 
@@ -278,13 +279,17 @@ String
 <str>  = <str>.replace(old, new [, count])   # Replaces 'old' with 'new' at most 'count' times.
 <bool> = <str>.startswith(<sub_str>)         # Pass tuple of strings for multiple options.
 <bool> = <str>.endswith(<sub_str>)           # Pass tuple of strings for multiple options.
-<int>  = <str>.index(<sub_str>)              # Returns start index of first match.
+<int>  = <str>.find(<sub_str>)               # Returns start index of first match or -1.
+<int>  = <str>.index(<sub_str>)              # Same but raises ValueError.
 ```
 
 ```python
 <bool> = <str>.isnumeric()                   # True if str contains only numeric characters.
 <list> = textwrap.wrap(<str>, width)         # Nicely breaks string into lines.
 ```
+
+* **Also: `'lstrip()'`, `'rstrip()'`.**
+* **Also: `'lower()'`, `'upper()'`, `'capitalize()'` and `'title()'`.**
 
 ### Char
 ```python
@@ -344,6 +349,7 @@ Format
 <str> = '{}, {}'.format(<el_1>, <el_2>)
 ```
 
+### Attributes
 ```python
 >>> from collections import namedtuple
 >>> Person = namedtuple('Person', 'name height')
@@ -357,9 +363,12 @@ Format
 ### General Options
 ```python
 {<el>:<10}       # '<el>      '
-{<el>:>10}       # '      <el>'
 {<el>:^10}       # '   <el>   '
-{<el>:.>10}      # '......<el>'
+{<el>:>10}       # '      <el>'
+```
+
+```python
+{<el>:.<10}      # '<el>......'
 {<el>:>0}        # '<el>'
 ```
 
@@ -398,9 +407,15 @@ Format
 
 Numbers
 -------
+```python
+<int>     = int(<float/str/bool>)    # Or: math.floor(<float>)
+<float>   = float(<int/str/bool>)
+<complex> = complex(real=0, imag=0)  # Or: <real> + <real>j
+```
+
 ### Basic Functions
 ```python
-<num>  = pow(<num>, <num>)  # Or: <num> ** <num>
+<num>  = pow(<num>, <num>)           # Or: <num> ** <num>
 <real> = abs(<num>)
 <int>  = round(<real>)
 <real> = round(<real>, ±ndigits)
@@ -425,6 +440,24 @@ from random import random, randint, choice, shuffle
 <int>   = randint(from_inclusive, to_inclusive)
 <el>    = choice(<list>)
 shuffle(<list>)
+```
+
+### Bin, Hex
+```python
+<int>     = 0b<bin>            # Or: 0x<hex>
+<int>     = int('0b<bin>', 0)  # Or: int('0x<hex>', 0)
+<int>     = int('<bin>', 2)    # Or: int('<hex>', 16)
+'0b<bin>' = bin(<int>)         # Or: '0x<hex>' = hex(<int>)
+```
+
+### Bitwise Operators
+```python
+<int>     = <int> & <int>      # And
+<int>     = <int> | <int>      # Or
+<int>     = <int> ^ <int>      # Xor (0 if both bits equal)
+<int>     = <int> << n_bits    # Shift left
+<int>     = <int> >> n_bits    # Shift right
+<int>     = ~<int>             # Compliment (flips bits)
 ```
 
 
@@ -552,9 +585,9 @@ Arguments
 
 ### Inside Function Definition
 ```python
-def f(<nondefault_args>):                      # def f(x, y)
-def f(<default_args>):                         # def f(x=0, y=0)
-def f(<nondefault_args>, <default_args>):      # def f(x, y=0)
+def f(<nondefault_args>):                      # def f(x, y):
+def f(<default_args>):                         # def f(x=0, y=0):
+def f(<nondefault_args>, <default_args>):      # def f(x, y=0):
 ```
 
 
@@ -587,6 +620,13 @@ def add(*a):
 
 #### Legal argument combinations:
 ```python
+def f(x, y, z):                # f(x=1, y=2, z=3) | f(1, y=2, z=3) | f(1, 2, z=3) | f(1, 2, 3)
+def f(*, x, y, z):             # f(x=1, y=2, z=3)
+def f(x, *, y, z):             # f(x=1, y=2, z=3) | f(1, y=2, z=3)
+def f(x, y, *, z):             # f(x=1, y=2, z=3) | f(1, y=2, z=3) | f(1, 2, z=3)
+```
+
+```python
 def f(*args):                  # f(1, 2, 3)
 def f(x, *args):               # f(1, 2, 3)
 def f(*args, z):               # f(1, 2, z=3)
@@ -596,6 +636,7 @@ def f(x, *args, z):            # f(1, 2, z=3)
 ```python
 def f(**kwargs):               # f(x=1, y=2, z=3)
 def f(x, **kwargs):            # f(x=1, y=2, z=3) | f(1, y=2, z=3)
+def f(*, x, **kwargs):         # f(x=1, y=2, z=3)
 ```
 
 ```python
@@ -680,7 +721,7 @@ point     = Point(0, 0)
 ```python
 from enum import Enum
 Direction = Enum('Direction', 'n e s w')
-Cutlery   = Enum('Cutlery', {'fork': 1, 'knife': 2, 'spoon': 3})
+direction = Direction.n
 ```
 
 ```python
@@ -825,6 +866,8 @@ class <name>:
     def get_class_name(cls):
         return cls.__name__
 ```
+* **Return value of repr() should be unambiguous and of str() readable.**
+* **If only repr() is defined, it will also be used for str().**
 
 ### Constructor Overloading
 ```python
@@ -858,6 +901,41 @@ class C(A, B): pass
 >>> C.mro()
 [<class 'C'>, <class 'A'>, <class 'B'>, <class 'object'>]
 ```
+
+### Property
+```python
+class MyClass:
+    @property
+    def a(self):
+        return self._a
+
+    @a.setter
+    def a(self, value):
+        self._a = value
+```
+
+```python
+>>> el = MyClass()
+>>> el.a = 123
+>>> el.a
+123
+```
+
+### Dataclass
+**Decorator that automatically generates init(), repr() and eq() special methods.**
+```python
+from dataclasses import dataclass, field
+
+@dataclass(order=False, frozen=False)
+class <class_name>:
+    <attr_name_1>: <type>
+    <attr_name_2>: <type> = <default_value>
+    <attr_name_3>: list/dict/set = field(default_factory=list/dict/set)
+```
+* **An object can be made sortable with `'order=True'` or immutable with `'frozen=True'`.**
+* **Function field() is needed because `'<attr_name>: list = []'` would make a list that is shared among all instances.**
+* **Default_factory can be any callable.**
+
 
 ### Copy
 ```python
@@ -894,16 +972,35 @@ class MyComparable:
 ```python
 class MyHashable:
     def __init__(self, a):
-        self.__a = copy.deepcopy(a)
+        self._a = copy.deepcopy(a)
     @property
     def a(self):
-        return self.__a
+        return self._a
     def __eq__(self, other):
         if isinstance(other, type(self)):
             return self.a == other.a
         return NotImplemented
     def __hash__(self):
         return hash(self.a)
+```
+
+### Sortable
+* **With 'total_ordering' decorator you only need to provide one of lt(), gt(), le() or ge() special methods.**
+```python
+from functools import total_ordering
+
+@total_ordering
+class MySortable:
+    def __init__(self, a):
+        self.a = a
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            return self.a == other.a
+        return NotImplemented
+    def __lt__(self, other):
+        if isinstance(other, type(self)):
+            return self.a < other.a
+        return NotImplemented
 ```
 
 ### Collection
@@ -1338,7 +1435,7 @@ Bytes
 ```python
 <str>   = <bytes>.decode(encoding='utf-8')
 <int>   = int.from_bytes(<bytes>, byteorder='big|little', signed=False)
-<hex>   = <bytes>.hex()
+'<hex>' = <bytes>.hex()
 ```
 
 ### Read Bytes from File
@@ -1386,7 +1483,7 @@ b'\x00\x01\x00\x02\x00\x00\x00\x03'
 
 #### Use capital letter for unsigned type. Standard sizes are in brackets:
 * **`'x'` - pad byte**
-* **`'c'` - char (1)**
+* **`'b'` - char (1)**
 * **`'h'` - short (2)**
 * **`'i'` - int (4)**
 * **`'l'` - long (4)**
@@ -1397,7 +1494,7 @@ b'\x00\x01\x00\x02\x00\x00\x00\x03'
 
 Array
 -----
-**List that can hold only elements of predefined type. Available types are listed above.**
+**List that can hold only elements of predefined type. Available types and their sizes are listed above.**
 
 ```python
 from array import array
@@ -1544,7 +1641,7 @@ class MyClass(metaclass=MyMetaClass):
 #### Type diagram (str is an instance of type, ...):
 ```text
 +---------+-------------+
-| classes | metaclasses |
+| Classes | Metaclasses |
 +---------+-------------|
 | MyClass > MyMetaClass |
 |         |     v       |
@@ -1557,7 +1654,7 @@ class MyClass(metaclass=MyMetaClass):
 #### Inheritance diagram (str is a subclass of object, ...):
 ```text
 +---------+-------------+
-| classes | metaclasses |
+| Classes | Metaclasses |
 +---------+-------------|
 | MyClass | MyMetaClass |
 |    v    |     v       |
@@ -1589,7 +1686,6 @@ last_el          = op.methodcaller('pop')(<list>)
 
 Eval
 ----
-### Basic
 ```python
 >>> from ast import literal_eval
 >>> literal_eval('1 + 2')
@@ -1598,51 +1694,6 @@ Eval
 [1, 2, 3]
 >>> literal_eval('abs(1)')
 ValueError: malformed node or string
-```
-
-### Using Abstract Syntax Trees
-```python
-import ast
-from ast import Num, BinOp, UnaryOp
-import operator as op
-
-LEGAL_OPERATORS = {ast.Add:    op.add,      # <el> + <el>
-                   ast.Sub:    op.sub,      # <el> - <el>
-                   ast.Mult:   op.mul,      # <el> * <el>
-                   ast.Div:    op.truediv,  # <el> / <el>
-                   ast.Pow:    op.pow,      # <el> ** <el>
-                   ast.BitXor: op.xor,      # <el> ^ <el>
-                   ast.USub:   op.neg}      # - <el>
-
-def evaluate(expression):
-    root = ast.parse(expression, mode='eval')
-    return eval_node(root.body)
-
-def eval_node(node):
-    node_type = type(node)
-    if node_type == Num:
-        return node.n
-    if node_type not in [BinOp, UnaryOp]:
-        raise TypeError(node)
-    operator_type = type(node.op)
-    if operator_type not in LEGAL_OPERATORS:
-        raise TypeError(f'Illegal operator {node.op}')
-    operator = LEGAL_OPERATORS[operator_type]
-    if node_type == BinOp:
-        left, right = eval_node(node.left), eval_node(node.right)
-        return operator(left, right)
-    elif node_type == UnaryOp:
-        operand = eval_node(node.operand)
-        return operator(operand)
-```
-
-```python
->>> evaluate('2 ^ 6')
-4
->>> evaluate('2 ** 6')
-64
->>> evaluate('1 + 2 * 3 ** (4 ^ 5) / (6 + -7)')
--5.0
 ```
 
 
@@ -1777,7 +1828,7 @@ logger.<level>('A logging message.')
 ```python
 try:
     ...
-except <Exception>:
+except <exception>:
     logger.exception('An error happened.')
 ```
 
@@ -2127,7 +2178,7 @@ frames_i  = (add_noise(a) for a in read_wav_file('test.wav'))
 write_to_wav_file('test.wav', frames_i)
 ```
 
-#### Plays Popcorn:
+### Synthesizer
 ```python
 # $ pip3 install simpleaudio
 import simpleaudio, math, struct
@@ -2156,6 +2207,7 @@ Basic Script Template
 #
 
 from collections import namedtuple
+from dataclasses import make_dataclass
 from enum import Enum
 import re
 import sys
